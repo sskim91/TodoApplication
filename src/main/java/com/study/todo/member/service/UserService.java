@@ -23,6 +23,10 @@ public class UserService {
             throw new IllegalStateException("Username already exists");
         }
 
+        if (userRepository.findByNickname(requestDto.getNickname()).isPresent()) {
+            throw new IllegalStateException("Nickname already exists");
+        }
+
         final User user = requestDto.toUser();
         user.encodePassword(passwordEncoder); // 비밀번호 인코딩
 

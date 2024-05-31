@@ -19,6 +19,7 @@ public class User {
 
     private String password;
 
+    @Column(name = "nickname", unique = true)
     private String nickname;
 
     @Builder

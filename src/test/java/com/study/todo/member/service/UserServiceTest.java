@@ -132,4 +132,28 @@ class UserServiceTest {
                 .nickname("테스트유저")
                 .build();
     }
+
+    @Test
+    @DisplayName("회원 가입 시 중복 닉네임 확인 테스트")
+    public void testSignupWithDuplicateNickname() {
+        UserRequestDto userRequestDto1 = UserRequestDto.builder()
+                .username("testuser1")
+                .password("password")
+                .nickname("테스트유저")
+                .build();
+
+        UserRequestDto userRequestDto2 = UserRequestDto.builder()
+                .username("testuser2")
+                .password("password")
+                .nickname("테스트유저")
+                .build();
+
+        userService.signup(userRequestDto1);
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            userService.signup(userRequestDto2);
+        });
+
+        assertThat(exception.getMessage()).isEqualTo("Nickname already exists");
+    }
 }
