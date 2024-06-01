@@ -5,6 +5,8 @@ import com.study.todo.user.dto.UserRequestDto;
 import com.study.todo.user.dto.UserResponseDto;
 import com.study.todo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,16 +16,19 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserService {
 
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public UserResponseDto signup(UserRequestDto requestDto) {
         if (userRepository.findByUsername(requestDto.getUsername()).isPresent()) {
+            log.info("User name = {}", requestDto.getUsername());
             throw new IllegalStateException("Username already exists");
         }
 
         if (userRepository.findByNickname(requestDto.getNickname()).isPresent()) {
+            log.info("User Nickname = {} ", requestDto.getNickname());
             throw new IllegalStateException("Nickname already exists");
         }
 

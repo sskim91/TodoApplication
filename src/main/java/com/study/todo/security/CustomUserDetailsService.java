@@ -1,4 +1,4 @@
-package com.study.todo.user.security;
+package com.study.todo.security;
 
 import com.study.todo.user.domain.User;
 import com.study.todo.user.repository.UserRepository;

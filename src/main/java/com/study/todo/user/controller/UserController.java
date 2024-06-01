@@ -22,6 +22,11 @@ public class UserController {
         return userService.login(requestDto);
     }
 
+    @PostMapping("/logout")
+    public void logout() {
+
+    }
+
     @DeleteMapping("/{id}")
     public void withdraw(@PathVariable Long id) {
         userService.withdraw(id);
