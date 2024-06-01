@@ -1,9 +1,9 @@
-package com.study.todo.member.service;
+package com.study.todo.user.service;
 
-import com.study.todo.member.domain.User;
-import com.study.todo.member.dto.UserRequestDto;
-import com.study.todo.member.dto.UserResponseDto;
-import com.study.todo.member.repository.UserRepository;
+import com.study.todo.user.domain.User;
+import com.study.todo.user.dto.UserRequestDto;
+import com.study.todo.user.dto.UserResponseDto;
+import com.study.todo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

@@ -1,10 +1,10 @@
 package com.study.todo.todo.service;
 
-import com.study.todo.member.domain.User;
-import com.study.todo.member.dto.UserRequestDto;
-import com.study.todo.member.dto.UserResponseDto;
-import com.study.todo.member.repository.UserRepository;
-import com.study.todo.member.service.UserService;
+import com.study.todo.user.domain.User;
+import com.study.todo.user.dto.UserRequestDto;
+import com.study.todo.user.dto.UserResponseDto;
+import com.study.todo.user.repository.UserRepository;
+import com.study.todo.user.service.UserService;
 import com.study.todo.todo.domain.TodoStatus;
 import com.study.todo.todo.dto.TodoRequestDto;
 import com.study.todo.todo.dto.TodoResponseDto;

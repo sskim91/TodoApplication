@@ -1,13 +1,13 @@
-package com.study.todo.member.controller;
+package com.study.todo.user.controller;
 
-import com.study.todo.member.dto.UserRequestDto;
-import com.study.todo.member.dto.UserResponseDto;
-import com.study.todo.member.service.UserService;
+import com.study.todo.user.dto.UserRequestDto;
+import com.study.todo.user.dto.UserResponseDto;
+import com.study.todo.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/members")
+@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;

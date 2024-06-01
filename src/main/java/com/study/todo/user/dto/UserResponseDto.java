@@ -1,19 +1,18 @@
-package com.study.todo.member.dto;
+package com.study.todo.user.dto;
 
-import com.study.todo.member.domain.User;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.study.todo.user.domain.User;
+import lombok.*;
 
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @ToString
 public class UserResponseDto {
-    private final Long id;
-    private final String username;
-    private final String nickname;
+    private Long id;
+    private String username;
+    private String nickname;
 
     public static UserResponseDto from(User user) {
         return UserResponseDto.builder()

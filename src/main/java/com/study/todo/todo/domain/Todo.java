@@ -1,6 +1,6 @@
 package com.study.todo.todo.domain;
 
-import com.study.todo.member.domain.User;
+import com.study.todo.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 

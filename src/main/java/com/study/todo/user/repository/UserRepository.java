@@ -1,6 +1,6 @@
-package com.study.todo.member.repository;
+package com.study.todo.user.repository;
 
-import com.study.todo.member.domain.User;
+import com.study.todo.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

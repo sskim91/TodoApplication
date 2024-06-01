@@ -1,7 +1,7 @@
 package com.study.todo.todo.service;
 
-import com.study.todo.member.domain.User;
-import com.study.todo.member.repository.UserRepository;
+import com.study.todo.user.domain.User;
+import com.study.todo.user.repository.UserRepository;
 import com.study.todo.todo.domain.Todo;
 import com.study.todo.todo.domain.TodoStatus;
 import com.study.todo.todo.dto.TodoRequestDto;

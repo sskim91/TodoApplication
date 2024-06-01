@@ -1,14 +1,13 @@
-package com.study.todo.member.dto;
+package com.study.todo.user.dto;
 
-import com.study.todo.member.domain.User;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.study.todo.user.domain.User;
+import lombok.*;
 
 @Getter
 @Setter
 @ToString
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class UserRequestDto {
     private String username;

@@ -1,4 +1,4 @@
-package com.study.todo.member.domain;
+package com.study.todo.user.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
