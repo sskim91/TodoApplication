@@ -6,14 +6,45 @@
 :toclevels: 2
 :sectlinks:
 
-== 회원 가입
+== Users API
+=== 회원 가입
 include::{snippets}/user-signup/http-request.adoc[]
 include::{snippets}/user-signup/http-response.adoc[]
 
-== 회원 로그인
+=== 회원 로그인
 include::{snippets}/user-login/http-request.adoc[]
 include::{snippets}/user-login/http-response.adoc[]
 
-== 회원 로그아웃
+=== 회원 로그아웃
 include::{snippets}/user-logout/http-request.adoc[]
 include::{snippets}/user-logout/http-response.adoc[]
+
+=== 회원 탈퇴
+include::{snippets}/user-withdraw/http-request.adoc[]
+include::{snippets}/user-withdraw/http-response.adoc[]
+
+== Todos API
+
+=== TODO 생성
+include::{snippets}/create-todo/http-request.adoc[]
+include::{snippets}/create-todo/http-response.adoc[]
+
+=== TODO 전체 조회
+include::{snippets}/get-all-todos/http-request.adoc[]
+include::{snippets}/get-all-todos/http-response.adoc[]
+
+=== TODO 단건 조회
+include::{snippets}/get-todo/http-request.adoc[]
+include::{snippets}/get-todo/http-response.adoc[]
+
+=== TODO 가장 최근의 1개
+include::{snippets}/get-most-recent-todo/http-request.adoc[]
+include::{snippets}/get-most-recent-todo/http-response.adoc[]
+
+=== TODO 상태 업데이트
+include::{snippets}/update-todo-status/http-request.adoc[]
+include::{snippets}/update-todo-status/http-response.adoc[]
+
+=== TODO 삭제
+include::{snippets}/delete-todo/http-request.adoc[]
+include::{snippets}/delete-todo/http-response.adoc[]
