@@ -24,44 +24,50 @@ public class TodoService {
     private final UserRepository userRepository;
 
     @Transactional
-    public TodoResponseDto createTodo(TodoRequestDto requestDto) {
-        User user = userRepository.findById(requestDto.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid user id: " + requestDto.getUserId()));
+    public TodoResponseDto createTodo(Long userId, TodoRequestDto requestDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid user ID: " + userId));
         Todo todo = Todo.builder()
                 .title(requestDto.getTitle())
                 .description(requestDto.getDescription())
-                .status(TodoStatus.TODO)
+                .status(requestDto.getStatus())
                 .user(user)
                 .build();
-        Todo savedTodo = todoRepository.save(todo);
-        return TodoResponseDto.from(savedTodo);
+        todoRepository.save(todo);
+        return TodoResponseDto.from(todo);
     }
 
     public List<TodoResponseDto> getAllTodos(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid user id: " + userId));
-        List<Todo> todos = todoRepository.findByUser(user);
-        return todos.stream().map(TodoResponseDto::from).collect(Collectors.toList());
+        List<Todo> todos = todoRepository.findByUserId(userId);
+        return todos.stream()
+                .map(TodoResponseDto::from)
+                .toList();
+    }
+
+    public TodoResponseDto getTodo(Long userId, Long todoId) {
+        Todo todo = todoRepository.findByIdAndUserId(todoId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid todo ID or user ID"));
+        return TodoResponseDto.from(todo);
     }
 
     public TodoResponseDto getMostRecentTodo(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid user id: " + userId));
-        Todo todo = todoRepository.findTopByUserOrderByCreatedAtDesc(user)
-                .orElseThrow(() -> new NoSuchElementException("No todos found for user id: " + userId));
+        Todo todo = todoRepository.findFirstByUserIdOrderByCreatedAtDesc(userId);
         return TodoResponseDto.from(todo);
     }
 
     @Transactional
-    public TodoResponseDto updateTodoStatus(Long todoId, TodoStatus status) {
-        Todo todo = todoRepository.findById(todoId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid todo id: " + todoId));
-
-        if (status == TodoStatus.PENDING && todo.getStatus() != TodoStatus.IN_PROGRESS) {
-            throw new IllegalStateException("Can only change to PENDING from IN_PROGRESS");
-        }
-
-        todo.changeStatus(status);
+    public TodoResponseDto updateTodoStatus(Long userId, Long todoId, TodoStatus status) {
+        Todo todo = todoRepository.findByIdAndUserId(todoId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid todo ID or user ID"));
+        todo.updateStatus(status);
+        todoRepository.save(todo);
         return TodoResponseDto.from(todo);
+    }
+
+    @Transactional
+    public void deleteTodo(Long userId, Long todoId) {
+        Todo todo = todoRepository.findByIdAndUserId(todoId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid todo ID or user ID"));
+        todoRepository.delete(todo);
     }
 }

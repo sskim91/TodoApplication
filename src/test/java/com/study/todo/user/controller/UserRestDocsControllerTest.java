@@ -36,12 +36,13 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @ExtendWith({RestDocumentationExtension.class, SpringExtension.class})
 @WebMvcTest(UserController.class)
-public class UserRestdocsControllerTest {
+public class UserRestDocsControllerTest {
 
     @Autowired
     MockMvc mockMvc;
@@ -59,9 +60,9 @@ public class UserRestdocsControllerTest {
                 .webAppContextSetup(webApplicationContext)
                 .apply(SecurityMockMvcConfigurers.springSecurity())
                 .apply(documentationConfiguration(restDocumentation))
-                .defaultRequest(MockMvcRequestBuilders.post("/**").with(csrf()))
+                .defaultRequest(post("/**").with(csrf()))
                 .defaultRequest(patch("/**").with(csrf()))
-                .defaultRequest(MockMvcRequestBuilders.delete("/**").with(csrf()))
+                .defaultRequest(delete("/**").with(csrf()))
                 .alwaysDo(document("{method-name}", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint())))
                 .build();
     }
@@ -78,6 +79,7 @@ public class UserRestdocsControllerTest {
                 .contentType("application/json")
                 .content(userJson))
                 .andExpect(status().isOk())
+                .andDo(print())
                 .andDo(document("user-signup",
                         requestFields(
                                 fieldWithPath("username").description("The user's username"),
@@ -114,6 +116,7 @@ public class UserRestdocsControllerTest {
                 .content(loginJson)
                 )
                 .andExpect(status().isOk())
+                .andDo(print())
                 .andDo(document("user-login",
                         requestFields(
                                 fieldWithPath("username").description("The user's username"),
@@ -133,6 +136,7 @@ public class UserRestdocsControllerTest {
     public void testLogout() throws Exception {
         mockMvc.perform(post("/api/v1/users/logout"))
                 .andExpect(status().isOk())
+                .andDo(print())
                 .andDo(document("user-logout"));
     }
 
@@ -145,6 +149,7 @@ public class UserRestdocsControllerTest {
         mockMvc.perform(delete("/api/v1/users/1")
                 )
                 .andExpect(status().isOk())
+                .andDo(print())
                 .andDo(document("user-withdraw",
                         pathParameters(
 

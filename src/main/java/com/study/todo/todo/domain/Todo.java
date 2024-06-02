@@ -42,14 +42,16 @@ public class Todo {
     }
 
     @Builder
-    private Todo(String title, String description, TodoStatus status, User user) {
+    private Todo(String title, String description, TodoStatus status, User user, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.title = title;
         this.description = description;
         this.status = status;
         this.user = user;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
-    public void changeStatus(TodoStatus status) {
+    public void updateStatus(TodoStatus status) {
         this.status = status;
     }
 }

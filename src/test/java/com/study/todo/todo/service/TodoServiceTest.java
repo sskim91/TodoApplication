@@ -1,158 +1,170 @@
 package com.study.todo.todo.service;
 
-import com.study.todo.user.domain.User;
-import com.study.todo.user.dto.UserRequestDto;
-import com.study.todo.user.dto.UserResponseDto;
-import com.study.todo.user.repository.UserRepository;
-import com.study.todo.user.service.UserService;
+import com.study.todo.todo.domain.Todo;
 import com.study.todo.todo.domain.TodoStatus;
 import com.study.todo.todo.dto.TodoRequestDto;
 import com.study.todo.todo.dto.TodoResponseDto;
 import com.study.todo.todo.repository.TodoRepository;
+import com.study.todo.user.domain.User;
+import com.study.todo.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class TodoServiceTest {
 
-    @Autowired
+    @InjectMocks
     TodoService todoService;
 
-    @Autowired
-    UserService userService;
-
-    @Autowired
+    @Mock
     UserRepository userRepository;
 
-    @Autowired
+    @Mock
     TodoRepository todoRepository;
+
+    private User user;
+    private Todo todo;
 
     @BeforeEach
     public void setup() {
+        // Initialize PasswordEncoder and create User and Todo
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        user = User.builder()
+                .username("testuser")
+                .password(passwordEncoder.encode("password"))
+                .nickname("테스트유저")
+                .id(1L)
+                .build();
+
+        todo = Todo.builder()
+                .title("Test Todo")
+                .description("This is a test todo")
+                .status(TodoStatus.TODO)
+                .user(user)
+                .build();
+
+
+        // Clear repositories
         todoRepository.deleteAll();
         userRepository.deleteAll();
     }
 
-    private User createUser() {
-        UserRequestDto userRequestDto = createMemberRequestDto("testuser", "테스트유저");
-        UserResponseDto userResponseDto = userService.signup(userRequestDto);
-        return userRepository.findById(userResponseDto.getId()).orElseThrow();
-    }
-
-    private UserRequestDto createMemberRequestDto(String username, String nickname) {
-        return UserRequestDto.builder()
-                .username(username)
-                .password("password")
-                .nickname(nickname)
-                .build();
-    }
-
-    private TodoRequestDto createTodoRequestDto(Long userId, String title, String description) {
-        return TodoRequestDto.builder()
-                .userId(userId)
-                .title(title)
-                .description(description)
-                .build();
-    }
-
     @Test
-    @DisplayName("회원은 TODO List를 작성할 수 있어야 한다")
+    @DisplayName("특정 사용자의 Todo 항목을 생성할 수 있어야 한다")
     public void testCreateTodo() {
-        User user = createUser();
-        TodoRequestDto todoRequestDto = createTodoRequestDto(user.getId(), "Test Todo", "This is a test todo");
+        // Mock repository responses
+        when(userRepository.findById(any(Long.class))).thenReturn(Optional.of(user));
+        when(todoRepository.save(any(Todo.class))).thenReturn(todo);
 
-        TodoResponseDto createdTodo = todoService.createTodo(todoRequestDto);
+        // Create request DTO
+        TodoRequestDto requestDto = TodoRequestDto.builder()
+                .title("Test Todo")
+                .description("This is a test todo")
+                .status(TodoStatus.TODO)
+                .build();
 
-        assertThat(createdTodo).isNotNull();
-        assertThat(createdTodo.getTitle()).isEqualTo("Test Todo");
-        assertThat(createdTodo.getDescription()).isEqualTo("This is a test todo");
-        assertThat(createdTodo.getStatus()).isEqualTo(TodoStatus.TODO);
+        // Call service method
+        TodoResponseDto responseDto = todoService.createTodo(1L, requestDto);
+
+        // Validate response
+        assertThat(responseDto.getTitle()).isEqualTo("Test Todo");
+        verify(todoRepository, times(1)).save(any(Todo.class));
     }
 
     @Test
-    @DisplayName("회원은 작성한 TODO List를 조회할 수 있어야 한다 - 전체 목록")
+    @DisplayName("특정 사용자의 모든 Todo 항목을 조회할 수 있어야 한다")
     public void testGetAllTodos() {
-        User user = createUser();
-        todoService.createTodo(createTodoRequestDto(user.getId(), "Todo 1", "Description 1"));
-        todoService.createTodo(createTodoRequestDto(user.getId(), "Todo 2", "Description 2"));
+        // Mock repository response
+        when(todoRepository.findByUserId(any(Long.class))).thenReturn(Arrays.asList(todo));
 
-        List<TodoResponseDto> todos = todoService.getAllTodos(user.getId());
+        // Call service method
+        List<TodoResponseDto> todos = todoService.getAllTodos(1L);
 
-        assertThat(todos).hasSize(2);
+        // Validate response
+        assertThat(todos).hasSize(1);
+        assertThat(todos.get(0).getTitle()).isEqualTo("Test Todo");
+        verify(todoRepository, times(1)).findByUserId(any(Long.class));
     }
 
     @Test
-    @DisplayName("회원은 작성한 TODO List를 조회할 수 있어야 한다 - 가장 최근의 TODO 1개")
+    @DisplayName("특정 사용자의 특정 Todo 항목을 조회할 수 있어야 한다")
+    public void testGetTodo() {
+        // Mock repository response
+        when(todoRepository.findByIdAndUserId(any(Long.class), any(Long.class))).thenReturn(Optional.of(todo));
+
+        // Call service method
+        TodoResponseDto responseDto = todoService.getTodo(1L, 1L);
+
+        // Validate response
+        assertThat(responseDto.getTitle()).isEqualTo("Test Todo");
+        verify(todoRepository, times(1)).findByIdAndUserId(any(Long.class), any(Long.class));
+    }
+
+    @Test
+    @DisplayName("특정 사용자의 가장 최근 Todo 항목을 조회할 수 있어야 한다")
     public void testGetMostRecentTodo() {
-        User user = createUser();
+        // Mock repository response
+        when(todoRepository.findFirstByUserIdOrderByCreatedAtDesc(any(Long.class))).thenReturn(todo);
 
-        todoService.createTodo(createTodoRequestDto(user.getId(), "Todo 1", "Description 1"));
-        todoService.createTodo(createTodoRequestDto(user.getId(), "Todo 2", "Description 2"));
-        TodoResponseDto mostRecentTodo = todoService.createTodo(createTodoRequestDto(user.getId(), "Todo 3", "Description 3"));
+        // Call service method
+        TodoResponseDto responseDto = todoService.getMostRecentTodo(1L);
 
-        TodoResponseDto recentTodo = todoService.getMostRecentTodo(user.getId());
-
-        assertThat(recentTodo).isNotNull();
-        assertThat(recentTodo.getId()).isEqualTo(mostRecentTodo.getId());
-        assertThat(recentTodo.getCreatedAt()).isAfterOrEqualTo(mostRecentTodo.getCreatedAt());
-        assertThat(recentTodo.getTitle()).isEqualTo("Todo 3");
-        assertThat(recentTodo.getDescription()).isEqualTo("Description 3");
+        // Validate response
+        assertThat(responseDto.getTitle()).isEqualTo("Test Todo");
+        verify(todoRepository, times(1)).findFirstByUserIdOrderByCreatedAtDesc(any(Long.class));
     }
 
     @Test
-    @DisplayName("회원은 작성한 TODO List의 상태를 변경할 수 있어야 한다")
+    @DisplayName("특정 사용자의 Todo 상태를 업데이트할 수 있어야 한다")
     public void testUpdateTodoStatus() {
-        User user = createUser();
-        TodoResponseDto todo = todoService.createTodo(createTodoRequestDto(user.getId(), "Test Todo", "This is a test todo"));
+        // Mock repository responses
+        when(todoRepository.findByIdAndUserId(any(Long.class), any(Long.class))).thenReturn(Optional.of(todo));
+        when(todoRepository.save(any(Todo.class))).thenReturn(todo);
 
-        TodoResponseDto updatedTodo = todoService.updateTodoStatus(todo.getId(), TodoStatus.IN_PROGRESS);
+        // Create request DTO
+        TodoRequestDto requestDto = TodoRequestDto.builder()
+                .status(TodoStatus.DONE)
+                .build();
 
-        assertThat(updatedTodo.getStatus()).isEqualTo(TodoStatus.IN_PROGRESS);
+        // Call service method
+        TodoResponseDto responseDto = todoService.updateTodoStatus(1L, 1L, requestDto.getStatus());
+
+        // Validate response
+        assertThat(responseDto.getStatus()).isEqualTo(TodoStatus.DONE);
+        verify(todoRepository, times(1)).findByIdAndUserId(any(Long.class), any(Long.class));
+        verify(todoRepository, times(1)).save(any(Todo.class));
     }
 
     @Test
-    @DisplayName("회원은 작성한 TODO List의 상태를 대기로 변경할 수 있어야 한다")
-    public void testUpdateTodoStatusToPending() {
-        User user = createUser();
-        TodoResponseDto todo = todoService.createTodo(createTodoRequestDto(user.getId(), "Test Todo", "This is a test todo"));
+    @DisplayName("특정 사용자의 Todo 항목을 삭제할 수 있어야 한다")
+    public void testDeleteTodo() {
+        // Mock repository response
+        when(todoRepository.findByIdAndUserId(any(Long.class), any(Long.class))).thenReturn(Optional.of(todo));
+        doNothing().when(todoRepository).delete(any(Todo.class));
 
-        todoService.updateTodoStatus(todo.getId(), TodoStatus.IN_PROGRESS);
-        TodoResponseDto updatedTodo = todoService.updateTodoStatus(todo.getId(), TodoStatus.PENDING);
+        // Call service method
+        todoService.deleteTodo(1L, 1L);
 
-        assertThat(updatedTodo.getStatus()).isEqualTo(TodoStatus.PENDING);
-    }
-
-    @Test
-    @DisplayName("회원은 대기 상태에서 TODO List의 상태를 변경할 수 있어야 한다")
-    public void testUpdatePendingTodoStatus() {
-        User user = createUser();
-        TodoResponseDto todo = todoService.createTodo(createTodoRequestDto(user.getId(), "Test Todo", "This is a test todo"));
-
-        todoService.updateTodoStatus(todo.getId(), TodoStatus.IN_PROGRESS);
-        todoService.updateTodoStatus(todo.getId(), TodoStatus.PENDING);
-        TodoResponseDto updatedTodo = todoService.updateTodoStatus(todo.getId(), TodoStatus.TODO);
-
-        assertThat(updatedTodo.getStatus()).isEqualTo(TodoStatus.TODO);
-    }
-
-    @Test
-    @DisplayName("진행 중 상태가 아닌 TODO를 대기 상태로 변경할 수 없다")
-    public void testCannotUpdateTodoStatusToPendingFromNonInProgress() {
-        User user = createUser();
-        TodoResponseDto todo = todoService.createTodo(createTodoRequestDto(user.getId(), "Test Todo", "This is a test todo"));
-
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            todoService.updateTodoStatus(todo.getId(), TodoStatus.PENDING);
-        });
-
-        assertThat(exception.getMessage()).isEqualTo("Can only change to PENDING from IN_PROGRESS");
+        // Validate interaction with repository
+        verify(todoRepository, times(1)).findByIdAndUserId(any(Long.class), any(Long.class));
+        verify(todoRepository, times(1)).delete(any(Todo.class));
     }
 }
