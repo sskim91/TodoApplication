@@ -1,5 +1,11 @@
 ## 프로젝트 구조
 
+- spring boot 3.2.x
+- spring data jpa
+- spring rest docs
+- h2
+- lombok
+
 ```text
 └── src
    ├── main
