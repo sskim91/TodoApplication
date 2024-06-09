@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -127,7 +128,8 @@ public class TodoControllerTest {
 
         List<TodoResponseDto> responseDtos = Arrays.asList(responseDto1, responseDto2);
 
-        when(todoService.getAllTodos(any(Long.class))).thenReturn(responseDtos);
+        when(todoService.getAllTodos(any(Long.class), any(Pageable.class)))
+                .thenReturn(responseDtos);
 
         mockMvc.perform(get("/api/v1/users/{userId}/todos", 1L))
                 .andExpect(status().isOk())
@@ -170,7 +172,7 @@ public class TodoControllerTest {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        when(todoService.getMostRecentTodo(any(Long.class))).thenReturn(responseDto);
+        when(todoService.getMostRecentTodo(any(Long.class), any(Integer.class))).thenReturn(List.of(responseDto));
 
         mockMvc.perform(get("/api/v1/users/{userId}/todos/recent", 1L))
                 .andExpect(status().isOk())

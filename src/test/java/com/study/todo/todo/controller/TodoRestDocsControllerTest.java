@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
@@ -82,8 +83,8 @@ public class TodoRestDocsControllerTest {
                 .build();
 
         todo = Todo.builder()
-                .title("Test Todo")
-                .description("This is a test todo")
+                .title("테스트 할 일")
+                .description("이것은 테스트 할 일입니다")
                 .status(TodoStatus.TODO)
                 .user(user)
                 .createdAt(LocalDateTime.now())
@@ -96,15 +97,15 @@ public class TodoRestDocsControllerTest {
     @WithMockUser(username = "testuser")
     public void testCreateTodo() throws Exception {
         TodoRequestDto requestDto = TodoRequestDto.builder()
-                .title("테스트 투두")
-                .description("테스트 투두 내용")
+                .title("테스트 할 일")
+                .description("이것은 테스트 할 일입니다")
                 .status(TodoStatus.TODO)
                 .build();
 
         TodoResponseDto responseDto = TodoResponseDto.builder()
                 .id(1L)
-                .title("테스스 투두")
-                .description("테스트 투두 내용")
+                .title("테스트 할 일")
+                .description("이것은 테스트 할 일입니다")
                 .status(TodoStatus.TODO)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -116,7 +117,6 @@ public class TodoRestDocsControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isOk())
-                .andDo(print())
                 .andDo(document("create-todo",
                         pathParameters(
                                 parameterWithName("userId").description("사용자의 ID")
@@ -143,8 +143,8 @@ public class TodoRestDocsControllerTest {
     public void testGetAllTodos() throws Exception {
         TodoResponseDto responseDto1 = TodoResponseDto.builder()
                 .id(1L)
-                .title("투두1 제목")
-                .description("내용1")
+                .title("테스트 할 일 1")
+                .description("이것은 테스트 할 일 1입니다")
                 .status(TodoStatus.TODO)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -152,8 +152,8 @@ public class TodoRestDocsControllerTest {
 
         TodoResponseDto responseDto2 = TodoResponseDto.builder()
                 .id(2L)
-                .title("투두2 제목")
-                .description("내용2")
+                .title("테스트 할 일 2")
+                .description("이것은 테스트 할 일 2입니다")
                 .status(TodoStatus.DONE)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -161,12 +161,62 @@ public class TodoRestDocsControllerTest {
 
         List<TodoResponseDto> responseDtos = Arrays.asList(responseDto1, responseDto2);
 
-        when(todoService.getAllTodos(any(Long.class))).thenReturn(responseDtos);
+        when(todoService.getAllTodos(any(Long.class), any(Pageable.class)))
+                .thenReturn(responseDtos);
 
-        mockMvc.perform(get("/api/v1/users/{userId}/todos", 1L))
+        mockMvc.perform(get("/api/v1/users/{userId}/todos", 1L)
+                        .param("page", "0")
+                        .param("size", "10"))
                 .andExpect(status().isOk())
-                .andDo(print())
                 .andDo(document("get-all-todos",
+                        pathParameters(
+                                parameterWithName("userId").description("사용자의 ID")
+                        ),
+                        responseFields(
+                                fieldWithPath("[].id").description("할 일의 ID"),
+                                fieldWithPath("[].title").description("할 일의 제목"),
+                                fieldWithPath("[].description").description("할 일의 설명"),
+                                fieldWithPath("[].status").description("할 일의 상태"),
+                                fieldWithPath("[].createdAt").description("할 일의 생성 시간"),
+                                fieldWithPath("[].updatedAt").description("할 일의 마지막 업데이트 시간")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("가장 최근 Todo 조회 테스트")
+    @WithMockUser(username = "testuser")
+    public void testGetMostRecentTodos() throws Exception {
+        TodoResponseDto responseDto1 = TodoResponseDto.builder()
+                .id(1L)
+                .title("가장 최근의 할 일 1")
+                .description("이것은 가장 최근의 할 일 1입니다")
+                .status(TodoStatus.TODO)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        TodoResponseDto responseDto2 = TodoResponseDto.builder()
+                .id(2L)
+                .title("가장 최근의 할 일 2")
+                .description("이것은 가장 최근의 할 일 2입니다")
+                .status(TodoStatus.DONE)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        List<TodoResponseDto> responseDtos = Arrays.asList(responseDto1, responseDto2);
+
+        when(todoService.getMostRecentTodo(any(Long.class), any(Integer.class)))
+                .thenReturn(responseDtos);
+
+        mockMvc.perform(get("/api/v1/users/{userId}/todos", 1L)
+                        .param("page", "0")
+                        .param("size", "2")
+                        .param("sort", "createdAt")
+                        .param("order", "desc"))
+                .andExpect(status().isOk())
+                .andDo(document("get-most-recent-todos",
                         pathParameters(
                                 parameterWithName("userId").description("사용자의 ID")
                         ),
@@ -187,8 +237,8 @@ public class TodoRestDocsControllerTest {
     public void testGetTodo() throws Exception {
         TodoResponseDto responseDto = TodoResponseDto.builder()
                 .id(1L)
-                .title("투두 제목")
-                .description("내용")
+                .title("테스트 할 일")
+                .description("이것은 테스트 할 일입니다")
                 .status(TodoStatus.TODO)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -198,44 +248,10 @@ public class TodoRestDocsControllerTest {
 
         mockMvc.perform(get("/api/v1/users/{userId}/todos/{todoId}", 1L, 1L))
                 .andExpect(status().isOk())
-                .andDo(print())
                 .andDo(document("get-todo",
                         pathParameters(
                                 parameterWithName("userId").description("사용자의 ID"),
                                 parameterWithName("todoId").description("할 일의 ID")
-                        ),
-                        responseFields(
-                                fieldWithPath("id").description("할 일의 ID"),
-                                fieldWithPath("title").description("할 일의 제목"),
-                                fieldWithPath("description").description("할 일의 설명"),
-                                fieldWithPath("status").description("할 일의 상태"),
-                                fieldWithPath("createdAt").description("할 일의 생성 시간"),
-                                fieldWithPath("updatedAt").description("할 일의 마지막 업데이트 시간")
-                        )
-                ));
-    }
-
-    @Test
-    @DisplayName("가장 최근 Todo 조회 테스트")
-    @WithMockUser(username = "testuser")
-    public void testGetMostRecentTodo() throws Exception {
-        TodoResponseDto responseDto = TodoResponseDto.builder()
-                .id(1L)
-                .title("투두 제목")
-                .description("내용")
-                .status(TodoStatus.TODO)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-
-        when(todoService.getMostRecentTodo(any(Long.class))).thenReturn(responseDto);
-
-        mockMvc.perform(get("/api/v1/users/{userId}/todos/recent", 1L))
-                .andExpect(status().isOk())
-                .andDo(print())
-                .andDo(document("get-most-recent-todo",
-                        pathParameters(
-                                parameterWithName("userId").description("사용자의 ID")
                         ),
                         responseFields(
                                 fieldWithPath("id").description("할 일의 ID"),
@@ -258,8 +274,8 @@ public class TodoRestDocsControllerTest {
 
         TodoResponseDto responseDto = TodoResponseDto.builder()
                 .id(1L)
-                .title("투두 제목")
-                .description("내용")
+                .title("테스트 할 일")
+                .description("이것은 테스트 할 일입니다")
                 .status(TodoStatus.DONE)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -271,15 +287,12 @@ public class TodoRestDocsControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isOk())
-                .andDo(print())
                 .andDo(document("update-todo-status",
                         pathParameters(
                                 parameterWithName("userId").description("사용자의 ID"),
                                 parameterWithName("todoId").description("할 일의 ID")
                         ),
                         requestFields(
-                                fieldWithPath("title").description("제목"),
-                                fieldWithPath("description").description("내용"),
                                 fieldWithPath("status").description("할 일의 새로운 상태")
                         ),
                         responseFields(
@@ -299,7 +312,6 @@ public class TodoRestDocsControllerTest {
     public void testDeleteTodo() throws Exception {
         mockMvc.perform(delete("/api/v1/users/{userId}/todos/{todoId}", 1L, 1L))
                 .andExpect(status().isNoContent())
-                .andDo(print())
                 .andDo(document("delete-todo",
                         pathParameters(
                                 parameterWithName("userId").description("사용자의 ID"),

@@ -8,6 +8,9 @@ import com.study.todo.todo.dto.TodoRequestDto;
 import com.study.todo.todo.dto.TodoResponseDto;
 import com.study.todo.todo.repository.TodoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,8 +40,8 @@ public class TodoService {
         return TodoResponseDto.from(todo);
     }
 
-    public List<TodoResponseDto> getAllTodos(Long userId) {
-        List<Todo> todos = todoRepository.findByUserId(userId);
+    public List<TodoResponseDto> getAllTodos(Long userId, Pageable pageable) {
+        final Page<Todo> todos = todoRepository.findByUserId(userId, pageable);
         return todos.stream()
                 .map(TodoResponseDto::from)
                 .toList();
@@ -50,9 +53,13 @@ public class TodoService {
         return TodoResponseDto.from(todo);
     }
 
-    public TodoResponseDto getMostRecentTodo(Long userId) {
-        Todo todo = todoRepository.findFirstByUserIdOrderByCreatedAtDesc(userId);
-        return TodoResponseDto.from(todo);
+    public List<TodoResponseDto> getMostRecentTodo(Long userId, int limit) {
+        Pageable pageable = PageRequest.of(0, limit);
+        Page<Todo> todos = todoRepository.findByUserId(userId, pageable);
+
+        return todos.stream()
+                .map(TodoResponseDto::from)
+                .toList();
     }
 
     @Transactional

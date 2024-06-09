@@ -9,6 +9,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
@@ -55,7 +59,9 @@ class TodoRepositoryTest {
         todoRepository.save(todo1);
         todoRepository.save(todo2);
 
-        List<Todo> todos = todoRepository.findByUserId(user.getId());
+        Pageable pageable = PageRequest.of(0,  2);
+
+        final Page<Todo> todos = todoRepository.findByUserId(user.getId(), pageable);
 
         assertThat(todos).hasSize(2);
         assertThat(todos).extracting("title").contains("Test Todo 1", "Test Todo 2");
@@ -73,7 +79,7 @@ class TodoRepositoryTest {
 
         Todo todo = Todo.builder()
                 .title("Test Todo")
-                .description("This is a test todo")
+                .description("테스트 할 일")
                 .status(TodoStatus.TODO)
                 .user(user)
                 .build();
@@ -97,14 +103,14 @@ class TodoRepositoryTest {
         userRepository.save(user);
 
         Todo todo1 = Todo.builder()
-                .title("Test Todo 1")
-                .description("This is test todo 1")
+                .title("테스트제목1")
+                .description("테스트 할 일 1")
                 .status(TodoStatus.TODO)
                 .user(user)
                 .build();
         Todo todo2 = Todo.builder()
-                .title("Test Todo 2")
-                .description("This is test todo 2")
+                .title("테스트제목2")
+                .description("테스트 할 일 2")
                 .status(TodoStatus.DONE)
                 .user(user)
                 .build();
@@ -112,9 +118,11 @@ class TodoRepositoryTest {
         todoRepository.save(todo1);
         todoRepository.save(todo2);
 
-        Todo mostRecentTodo = todoRepository.findFirstByUserIdOrderByCreatedAtDesc(user.getId());
+        Pageable pageable = PageRequest.of(0,  1, Sort.by(Sort.Order.desc("createdAt")));
+        final List<Todo> todos = todoRepository.findByUserId(user.getId(), pageable)
+                .getContent();
 
-        assertThat(mostRecentTodo).isNotNull();
-        assertThat(mostRecentTodo.getTitle()).isEqualTo("Test Todo 2");
+        assertThat(todos).hasSize(1);
+        assertThat(todos.get(0).getTitle()).isEqualTo("테스트제목2");
     }
 }

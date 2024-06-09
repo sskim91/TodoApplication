@@ -4,6 +4,9 @@ import com.study.todo.todo.dto.TodoRequestDto;
 import com.study.todo.todo.dto.TodoResponseDto;
 import com.study.todo.todo.service.TodoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,18 +25,19 @@ public class TodoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TodoResponseDto>> getAllTodos(@PathVariable Long userId) {
-        return ResponseEntity.ok(todoService.getAllTodos(userId));
+    public ResponseEntity<List<TodoResponseDto>> getAllTodos(@PathVariable Long userId,
+                                                             @RequestParam(defaultValue = "0") int page,
+                                                             @RequestParam(defaultValue = "10") int size,
+                                                             @RequestParam(defaultValue = "createdAt") String sort,
+                                                             @RequestParam(defaultValue = "desc") String order) {
+        Sort.Direction direction = "asc".equalsIgnoreCase(order) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort));
+        return ResponseEntity.ok(todoService.getAllTodos(userId, pageable));
     }
 
     @GetMapping("/{todoId}")
     public ResponseEntity<TodoResponseDto> getTodo(@PathVariable Long userId, @PathVariable Long todoId) {
         return ResponseEntity.ok(todoService.getTodo(userId, todoId));
-    }
-
-    @GetMapping("/recent")
-    public ResponseEntity<TodoResponseDto> getMostRecentTodo(@PathVariable Long userId) {
-        return ResponseEntity.ok(todoService.getMostRecentTodo(userId));
     }
 
     @PutMapping("/{todoId}/status")

@@ -16,6 +16,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -93,15 +96,17 @@ class TodoServiceTest {
     @DisplayName("특정 사용자의 모든 Todo 항목을 조회할 수 있어야 한다")
     public void testGetAllTodos() {
         // Mock repository response
-        when(todoRepository.findByUserId(any(Long.class))).thenReturn(Arrays.asList(todo));
+        Pageable pageable = PageRequest.of(0, 10);
+        when(todoRepository.findByUserId(any(Long.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Arrays.asList(todo)));
 
         // Call service method
-        List<TodoResponseDto> todos = todoService.getAllTodos(1L);
+        List<TodoResponseDto> todos = todoService.getAllTodos(1L, pageable);
 
         // Validate response
         assertThat(todos).hasSize(1);
         assertThat(todos.get(0).getTitle()).isEqualTo("Test Todo");
-        verify(todoRepository, times(1)).findByUserId(any(Long.class));
+        verify(todoRepository, times(1)).findByUserId(any(Long.class), any(Pageable.class));
     }
 
     @Test
@@ -120,16 +125,19 @@ class TodoServiceTest {
 
     @Test
     @DisplayName("특정 사용자의 가장 최근 Todo 항목을 조회할 수 있어야 한다")
-    public void testGetMostRecentTodo() {
+    public void testGetMostRecentTodos() {
         // Mock repository response
-        when(todoRepository.findFirstByUserIdOrderByCreatedAtDesc(any(Long.class))).thenReturn(todo);
+        Pageable pageable = PageRequest.of(0, 2);
+        when(todoRepository.findByUserId(any(Long.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Arrays.asList(todo, todo)));
 
         // Call service method
-        TodoResponseDto responseDto = todoService.getMostRecentTodo(1L);
+        List<TodoResponseDto> responseDtos = todoService.getMostRecentTodo(1L, 2);
 
         // Validate response
-        assertThat(responseDto.getTitle()).isEqualTo("Test Todo");
-        verify(todoRepository, times(1)).findFirstByUserIdOrderByCreatedAtDesc(any(Long.class));
+        assertThat(responseDtos).hasSize(2);
+        assertThat(responseDtos.get(0).getTitle()).isEqualTo("Test Todo");
+        verify(todoRepository, times(1)).findByUserId(any(Long.class), any(Pageable.class));
     }
 
     @Test
